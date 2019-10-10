@@ -35,12 +35,9 @@ urlpatterns = [
     url(r'^manage_class', views.manage_class),
     url(r'^manage_report', views.manage_report),
     url(r'^settings', views.manage_settings),
-   
-    url(r'^create_student/', views.create_student),
-    url(r'^get_all_student_info/', views.get_all_student_info),
-    url(r'^get_student_info_by_id/', views.get_student_info_by_id),
-    url(r'^modify_student/', views.modify_student),
-    url(r'^remove_student/', views.remove_student),
+    url(r'^audio_upload', views.audio_upload),
+    url(r'^upload', views.upload),
+    
 
 ]
 
