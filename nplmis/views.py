@@ -284,8 +284,6 @@ def init_web(request):
     return render(request, 'signin.html')
 
 
-
-
 def audio_upload(request):
     context = {}
     current_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
@@ -293,21 +291,24 @@ def audio_upload(request):
         try:
             import pdb;pdb.set_trace()
             # get file
-            audio_file = request.FILES['audio_file']
+            audio_file = request.FILES.get('audio_file')
             # init prepare data
             prepare_data={'uid':'123', 'token':'123','lang': 'zh'}
             prepare_req = requests.post('http://xz502.tpddns.cn:8210/v1/trans/api/prepare', data=prepare_data)
             prepare_res_data=""
-            bath_path = os.getcwd()
-            upload_file_path = bath_path+"/audio_file/"
+            # linux 文件夹路径
+            bash_path = os.getcwd()
+            upload_file_path = bash_path+"/audio_file/"
             file_name = os.path.join(upload_file_path, audio_file.name)
-            audio_file.save(file_name)
+            f = open(file_name, 'wb')
+            for chunk in audio_file.chunks():
+                f.write(chunk)
+            f.close()
             if json.loads(prepare_req.text)['ok'] == 0:
                 prepare_res_data = json.loads(prepare_req.text)['data'].encode('utf-8')
-                destination = open(bath_path+newline"/audio_file/"+audio_file.name, 'wb+')
-                audio_data = { "task_id" : prepare_res_data , 'filename' : upload_file_path }
+                audio_data = { "task_id" : prepare_res_data , 'filename' : "@/"+file_name }
                 upload_req = requests.post('http://xz502.tpddns.cn:8210/v1/trans/api/upload', data=audio_data)
-                print upload_req.text
+                pirnt(upload_req.text)
             else:
                 return "false"
         except:
