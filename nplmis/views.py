@@ -16,7 +16,7 @@ import random
 import logging
 import requests
 import os
-
+import commands
 
 logger = logging.getLogger(__name__)
 
@@ -295,7 +295,7 @@ def audio_upload(request):
             # init prepare data
             prepare_data={'uid':'123', 'token':'123','lang': 'zh'}
             prepare_req = requests.post('http://xz502.tpddns.cn:8210/v1/trans/api/prepare', data=prepare_data)
-            prepare_res_data=""
+            task_id=""
             # linux 文件夹路径
             bash_path = os.getcwd()
             upload_file_path = bash_path+"/audio_file/"
@@ -305,10 +305,22 @@ def audio_upload(request):
                 f.write(chunk)
             f.close()
             if json.loads(prepare_req.text)['ok'] == 0:
-                prepare_res_data = json.loads(prepare_req.text)['data'].encode('utf-8')
-                audio_data = { "task_id" : prepare_res_data , 'filename' : "@/"+file_name }
-                upload_req = requests.post('http://xz502.tpddns.cn:8210/v1/trans/api/upload', data=audio_data)
-                pirnt(upload_req.text)
+                task_id = json.loads(prepare_req.text)['data'].encode('utf-8')
+                #audio_data = { "task_id" : task_id , 'filename' : "@/"+file_name }
+                #upload_req = requests.post('http://xz502.tpddns.cn:8210/v1/trans/api/upload', data=audio_data)
+                #upload_req = os.system("curl -F \"task_id="+prepare_res_data+"\" -F \"filename=@/"+file_name+"\" http://xz502.tpddns.cn:8210/v1/trans/api/upload")
+                (status, output) = commands.getstatusoutput("curl -F \"task_id="+task_id+"\" -F \"filename=@/"+file_name+"\" http://xz502.tpddns.cn:8210/v1/trans/api/upload")
+                upload_status = output.split("ok")[1].replace("}", "").replace(":","").replace("\"","").replace("\'","")
+                ok_success = '0'
+                if str(upload_status) == ok_success:
+                    progress_data = {"task_id": task_id}
+                    progress_req = requests.post('http://xz502.tpddns.cn:8210/v1/trans/api/getProgress', data=progress_data)
+                    pd = json.loads(progress_req.text)['data'].encode('utf-8')
+                    progress_status = json.loads(pd)["status"]
+                    if progress_status == 3:
+                        result_data = {"task_id": task_id}
+                        result_req = requests.post('http://xz502.tpddns.cn:8210/v1/trans/api/getResult', data=result_data)
+                        return HttpResponse(result_req.text, content_type='application/json',)
             else:
                 return "false"
         except:
