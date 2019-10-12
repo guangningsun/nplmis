@@ -17,6 +17,7 @@ import logging
 import requests
 import os
 import commands
+import ast
 
 logger = logging.getLogger(__name__)
 
@@ -320,7 +321,10 @@ def audio_upload(request):
                     if progress_status == 3:
                         result_data = {"task_id": task_id}
                         result_req = requests.post('http://xz502.tpddns.cn:8210/v1/trans/api/getResult', data=result_data)
-                        return HttpResponse(result_req.text, content_type='application/json',)
+                        #return HttpResponse(result_req.text, content_type='application/json',)
+                        res_data_list = ast.literal_eval(json.loads(result_req.text)["data"])
+                        context = {"req_data": res_data_list[0]["transcript"]}
+                        return render(request, 'upload.html', context)
             else:
                 return "false"
         except:
